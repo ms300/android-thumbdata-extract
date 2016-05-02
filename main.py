@@ -14,8 +14,7 @@ print "found " + str(len(lst_device)/2) + " devices."
 print lst_device
 #device_id=raw_input("input device id:")
 print "locating thumbdata files.."
-thumbfiles=adb.shell_command("ls -a /storage/emulated/0/DCIM/.thumbnails/ ")
-thumbfiles=[""]
+thumbfiles=adb.shell_command("ls -a /sdcard/DCIM/.thumbnails/ ")
 lst_thumb=thumbfiles.split("\n")
 
 for item in lst_thumb:
@@ -24,7 +23,7 @@ for item in lst_thumb:
         print "copying..."
         #adb.run_cmd("pull /storage/emulated/0/DCIM/.thumbnails/" + item[:-1] + " " + os.getcwd() + "/tmp/" + item[:-1] )
         if not  os.path.isfile(os.getcwd() + "/tmp/" + item[:-1]):
-            adb.get_remote_file("/storage/emulated/0/DCIM/.thumbnails/" + item[:-1] ,os.getcwd() + "/tmp/" + item[:-1] )
+            adb.get_remote_file("/sdcard/DCIM/.thumbnails/" + item[:-1] ,os.getcwd() + "/tmp/" + item[:-1] )
             print "copy OK!"
         else:
             print "cache found. skipping..."
@@ -40,15 +39,26 @@ for item in lst_thumb:
             tmp=f.read(10000)
             if tmp[0]=="\x01":
                 #print offset
-                tmp_magic_code=tmp[1:9]
-                tmp_jpg_size=tmp[9:13]
-                #magic_code=unpack("i",tmp_magic_code[::-1])
-                jpg_size=unpack("I",tmp_jpg_size[::-1])
-                #print jpg_size
-                f2=open(os.getcwd() + "/extract/" + item[:-1] + "/" + str(offset/10000) + ".jpg","wb")
-                f.seek(offset + 13)
-                f2.write(f.read(int(jpg_size[0])))
-                print "extracting " + str(offset/10000) + ".jpg"
+                #normal mode and xiaomi mode
+                if tmp[21]!="\xFF": #normal mode
+                    tmp_magic_code=tmp[1:9]
+                    tmp_jpg_size=tmp[9:13]
+                    #magic_code=unpack("i",tmp_magic_code[::-1])
+                    jpg_size=unpack("I",tmp_jpg_size[::-1])
+                    #print jpg_size
+                    f2=open(os.getcwd() + "/extract/" + item[:-1] + "/" + str(offset/10000) + ".jpg","wb")
+                    f.seek(offset + 13)
+                    f2.write(f.read(int(jpg_size[0])))
+                    print "extracting " + str(offset/10000) + ".jpg"
+                else:
+                    tmp_magic_code = tmp[1:17]
+                    tmp_jpg_size = tmp[17:21]
+                    jpg_size=unpack("I",tmp_jpg_size[::-1])
+                    #print jpg_siz
+                    f2 = open(os.getcwd() + "/extract/" + item[:-1] + "/" + str(offset / 10000) + ".jpg", "wb")
+                    f.seek(offset + 21)
+                    f2.write(f.read(int(jpg_size[0])))
+                    print "extracting " + str(offset / 10000) + ".jpg"
             offset+=10000
 print "All Done!"
 

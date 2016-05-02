@@ -1,6 +1,6 @@
 ##android thumbdata extractor
 A python script to extract thumb pictures from .thumbdata on your android phone.
-##how to use:
+###how to use:
 just let your phone connected with your computer and then run this script.
 This scipt will copy your .thumbdata file to /tmp
 then extract pictures from the data file.
